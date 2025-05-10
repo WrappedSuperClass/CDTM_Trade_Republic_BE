@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 
 interface StoryModalProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ interface StoryModalProps {
   onTrade: () => void;
 }
 
+interface TopMovers {}
+
 export function StoryModal({
   isOpen,
   onClose,
@@ -28,6 +31,16 @@ export function StoryModal({
   onFollowToggle,
   onTrade,
 }: StoryModalProps) {
+  const [news, setNews] = useState<any[]>([]);
+  useEffect(() => {
+    fetch(`http://127.0.0.1:8000/getTopMovers`)
+      .then((res) => res.json())
+      .then((data) => setNews(data));
+  }, []);
+
+  console.log(news);
+  // const movers = news?.map((item) => item.ticker);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800">

@@ -36,7 +36,7 @@ class StockDataRequest(BaseModel):
 
 
 
-@app.get("/getNews")
+@app.get("/getTopMovers")
 async def root():
     try:
         cached_news = news_cache.get_cached_news()

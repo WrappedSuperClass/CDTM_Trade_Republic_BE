@@ -18,7 +18,6 @@ export default function StockChart({ timeframe }: { timeframe: Timeframe }) {
       .then((data) => setData(data.historical_data));
   }, [timeframe]);
 
-  console.log(data);
   if (!data || data.length === 0) return null;
   const chartData = data?.map((data) => data.close);
   const xAxisData = data.map((data) => {
