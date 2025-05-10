@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from query_perplexity import get_news, get_stock_movement
 from news_cache import NewsCache
+import yfinance as yf
+from typing import Optional
+from datetime import datetime, timedelta
 import json
 
 
@@ -24,6 +27,12 @@ app.add_middleware(
 class StockMovementRequest(BaseModel):
     ticker: str
     timeframe: str
+
+class StockDataRequest(BaseModel):
+    ticker: str
+    period: Optional[str] = "1d"  # Default to 1 day
+
+
 
 
 @app.get("/getNews")
@@ -57,3 +66,64 @@ async def query_stock_movement(request: StockMovementRequest):
         return json_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@app.get("/stock-data")
+async def get_stock_data(ticker: str, period: str = "1d"):
+    try:
+        # Map period to appropriate interval
+        interval_map = {
+            "1d": "30m",    # 1 day -> 1 minute intervals
+            "1wk": "1h",  # 1 week -> 15 minute intervals
+            "1mo": "4h",   # 1 month -> 1 hour intervals
+            "1y": "1d"     # 1 year -> 1 day intervals
+        }
+        
+        # Validate period
+        if period not in interval_map:
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid period. Must be one of: 1d, 1wk, 1mo, 1y"
+            )
+            
+        interval = interval_map[period]
+        
+        # Get stock data
+        stock = yf.Ticker(ticker)
+        print(stock)
+        hist = stock.history(period=period, interval=interval)
+        
+        # Convert the data to a more API-friendly format
+        data = []
+        for index, row in hist.iterrows():
+            data.append({
+                "timestamp": index.isoformat(),
+                "open": float(row["Open"]),
+                "high": float(row["High"]),
+                "low": float(row["Low"]),
+                "close": float(row["Close"]),
+                "volume": int(row["Volume"])
+            })
+        
+        # Get additional stock info
+        info = stock.info
+        stock_info = {
+            "name": info.get("longName", ""),
+            "symbol": info.get("symbol", ""),
+            "currency": info.get("currency", ""),
+            "exchange": info.get("exchange", ""),
+            "market_cap": info.get("marketCap", 0),
+            "current_price": info.get("currentPrice", 0),
+            "previous_close": info.get("previousClose", 0),
+            "fifty_two_week_high": info.get("fiftyTwoWeekHigh", 0),
+            "fifty_two_week_low": info.get("fiftyTwoWeekLow", 0)
+        }
+        
+        return {
+            "stock_info": stock_info,
+            "historical_data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
