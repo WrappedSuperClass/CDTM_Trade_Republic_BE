@@ -14,6 +14,36 @@ const printTool = tool({
   }
 });
 
+const getStockMovementTool = tool({
+  description: "Get stock movement data for a specific ticker and timeframe",
+  parameters: z.object({
+    ticker: z.string().describe("The stock ticker symbol or name"),
+    timeframe: z.string().describe("The timeframe to check (e.g., 'End of January 2025')")
+  }),
+  execute: async ({ ticker, timeframe }) => {
+    try {
+      const response = await fetch('http://localhost:8000/stock-movement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ticker, timeframe }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Stock movement data:", data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching stock movement:', error);
+      return { error: 'Failed to fetch stock movement data' };
+    }
+  }
+});
+
 export async function POST(req: Request) {
   const { messages } = await req.json();
   console.log("messages", messages);
@@ -22,9 +52,10 @@ export async function POST(req: Request) {
     system: systemPrompt,
     messages,
     tools: {
-      print: printTool
+      print: printTool,
+      getStockMovement: getStockMovementTool
     },
-    maxSteps: 2
+    maxSteps: 3
   });
   return res.toDataStreamResponse();
 }
