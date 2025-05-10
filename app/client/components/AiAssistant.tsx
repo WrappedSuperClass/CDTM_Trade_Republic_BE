@@ -40,8 +40,15 @@ export function AiAssistant() {
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
 
-  const { messages, input, handleSubmit, handleInputChange, status } =
-    useChat();
+  const { messages, input, handleSubmit, handleInputChange, status } = useChat({
+    initialMessages: [
+      {
+        id: "0",
+        content: "Hello, how can I help you today?",
+        role: "assistant",
+      },
+    ],
+  });
 
   // Submit on speech
   useEffect(() => {
@@ -58,7 +65,7 @@ export function AiAssistant() {
     >
       <div
         className={twMerge(
-          "flex flex-col justify-end gap-4 min-h-[300px] w-[400px] bg-white rounded-lg opacity-0 pointer-events-none transition-all duration-150 ease-out",
+          "flex flex-col justify-end gap-4 min-h-[100px] w-[400px] bg-white rounded-lg opacity-0 pointer-events-none transition-all duration-150 ease-out",
           active && "opacity-100 pointer-events-auto"
         )}
       >

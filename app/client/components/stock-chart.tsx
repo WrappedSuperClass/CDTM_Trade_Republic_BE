@@ -42,7 +42,9 @@ export default function StockChart({ timeframe }: { timeframe: Timeframe }) {
           },
         },
       ]}
-      colors={["white"]}
+      colors={[
+        data[data.length - 1].close > data[0].close ? "lightgreen" : "red",
+      ]}
       height={400}
       sx={{
         width: "calc(100% + 50px)",
