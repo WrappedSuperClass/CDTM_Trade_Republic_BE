@@ -7,6 +7,7 @@ import yfinance as yf
 from typing import Optional
 from datetime import datetime, timedelta
 import json
+import os
 
 
 app = FastAPI()
@@ -126,4 +127,23 @@ async def get_stock_data(ticker: str, period: str = "1d"):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.get("/trading-wrapped")
+async def get_trading_wrapped(user_id: str):
+    try:
+        from tr_wrapped.trading_wrapped import get_trading_wrapped_points
+        
+        # Get the absolute path to the CSV file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, "tr_wrapped", "trading_sample_data.csv")
+        
+        wrapped_points = get_trading_wrapped_points(user_id, csv_path)
+        return {"points": wrapped_points}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
     
