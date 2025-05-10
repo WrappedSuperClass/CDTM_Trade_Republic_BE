@@ -69,4 +69,63 @@ Constraints:
         )
         return response
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def get_stock_movement(ticker: str, timeframe: str):
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a real‑time financial summarization assistant. "
+                "You have access to live market data, corporate news, and credible financial media. "
+                "When asked about specific stock movements, you must: "
+                " • Identify the significant price movements for the specified stock during the given timeframe. "
+                " • Explain the most plausible primary catalyst for each move."
+                " • Return output strictly as minified JSON that conforms to the schema the user provides (no markdown, no code fences, no extra keys, no commentary)."
+                "If you are unsure of a catalyst, state that explicitly and provide no sources."
+            ),
+        },
+        {   
+            "role": "user",
+            "content": (
+                f"""
+Analyze the stock movement for {ticker} during {timeframe}.
+
+Return **only** valid minified JSON matching this exact schema:
+
+{{
+  "asOf": "<ISO‑8601 UTC timestamp>",
+  "timeframe": "<human‑readable label of the analyzed period>",
+  "stock": {{
+    "symbol": "{ticker}",
+    "movements": [
+      {{
+        "date": "<ISO‑8601 date>",
+        "percentChange": <number>,          // positive = up, negative = down
+        "direction": "up" | "down",
+        "story": "<max 60‑word plain‑language explanation of the main catalyst, ending with a period>",
+        "sources": ["<url1>", "<url2>"]     // up to 3 credible links; omit array or leave [] if unknown
+      }}
+    ]
+  }}
+}}
+
+Constraints:
+• JSON only, no markdown.
+• Use minified syntax (no pretty‑print spacing).
+• If the catalyst cannot be determined, set "story":"No clear catalyst identified." and leave "sources":[].
+• Do **NOT** invent prices or sources.
+"""
+            ),
+        },
+    ]
+
+    try:
+        # chat completion without streaming
+        response = client.chat.completions.create(
+            model="sonar-pro",
+            messages=messages,
+        )
+        return response
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) 
