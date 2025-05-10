@@ -4,6 +4,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  background-color: #000;
 }
 
 @layer utilities {
@@ -90,5 +91,37 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+.white-scrollbar::-webkit-scrollbar {
+  background-color: black;
+  border-radius: 10px;
+  height: 5px;
+}
+
+.white-scrollbar::-webkit-scrollbar-thumb {
+  background-color: lightgray;
+  border-radius: 10px;
+  height: 5px;
+}
+
+.white-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: gray;
+}
+
+.listening {
+  animation: listening 1s infinite;
+}
+
+@keyframes listening {
+  0% {
+    box-shadow: 10px;
+  }
+  50% {
+    box-shadow: 2px;
+  }
+  100% {
+    box-shadow: 5px;
   }
 }

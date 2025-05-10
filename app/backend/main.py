@@ -18,10 +18,10 @@ news_cache = NewsCache()
 # Disable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[],
-    allow_credentials=False,
-    allow_methods=[],
-    allow_headers=[],
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -66,14 +66,15 @@ async def query_stock_movement(request: StockMovementRequest):
 
 
 @app.get("/stock-data")
-async def get_stock_data(ticker: str, period: str = "1d"):
+async def get_stock_data(ticker: str, period: str = "d"):
     try:
         # Map period to appropriate interval
         interval_map = {
-            "1d": "30m",    # 1 day -> 1 minute intervals
-            "1wk": "1h",  # 1 week -> 15 minute intervals
-            "1mo": "4h",   # 1 month -> 1 hour intervals
-            "1y": "1d"     # 1 year -> 1 day intervals
+            "1d": "5m",    # 1 day -> 1 minute intervals
+            "1wk": "5m",  # 1 week -> 15 minute intervals
+            "1mo": "1h",   # 1 month -> 1 hour intervals
+            "1y": "1d",     # 1 year -> 1 day intervals
+            "max": "1mo"     # max -> 1 day intervals
         }
         
         # Validate period

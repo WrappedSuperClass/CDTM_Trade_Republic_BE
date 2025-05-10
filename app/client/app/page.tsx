@@ -1,21 +1,40 @@
-import { RefreshCcw } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import StockChart from "@/components/stock-chart"
-import StockList from "@/components/stock-list"
-import TimeFilter from "@/components/time-filter"
+"use client";
+import { RefreshCcw } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import StockChart from "@/components/stock-chart";
+import StockList from "@/components/stock-list";
+import TimeFilter from "@/components/time-filter";
+import { Stories } from "@/components/Stories";
+import { AiAssistant } from "@/components/AiAssistant";
+import { useState } from "react";
+
+export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
 
 export default function Home() {
+  const [timeframe, setTimeframe] = useState<Timeframe>("1d");
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Navigation */}
       <header className="border-b border-gray-800 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Image src="/logo.png" alt="Logo" width={32} height={32} />
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={32}
+              height={32}
+              style={{ borderRadius: "100px" }}
+            />
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg
+                  className="w-4 h-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -67,15 +86,15 @@ export default function Home() {
               </button>
             </div>
 
-            <TimeFilter />
+            <TimeFilter setTimeframe={setTimeframe} timeframe={timeframe} />
 
             <div className="mt-4 h-80">
-              <StockChart />
+              <StockChart timeframe={timeframe} />
             </div>
 
             <div className="mt-16">
-              <h2 className="text-2xl font-bold mb-4">Discover</h2>
-              <h3 className="text-xl font-medium">Top movers</h3>
+              <h2 className="text-2xl font-bold mb-4">Stories</h2>
+              <Stories />
               {/* Top movers content would go here */}
             </div>
           </div>
@@ -86,15 +105,26 @@ export default function Home() {
               <h2 className="text-xl font-bold">Investments</h2>
               <div className="flex items-center">
                 <span className="text-blue-400 text-sm">Since buy</span>
-                <svg className="w-4 h-4 text-blue-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 text-blue-400 ml-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
             <StockList />
           </div>
         </div>
+        <AiAssistant />
       </main>
     </div>
-  )
+  );
 }
