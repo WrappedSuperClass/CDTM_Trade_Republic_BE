@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from query_perplexity import get_news, get_stock_movement
+from query_perplexity import get_news, get_stock_movement, get_company_logo
 from news_cache import NewsCache
 import yfinance as yf
 from typing import Optional
@@ -43,15 +43,10 @@ async def root():
         if cached_news:
             return cached_news
 
-        response = await get_news()
-        content = response.choices[0].message.content
-        if "<think>" in content:
-            content = content.split("</think>")[-1].strip()
-        json_response = json.loads(content)
-
-        news_cache.store_news(json_response)
-
-        return json_response
+        news_data = await get_news()
+        news_cache.store_news(news_data)
+        
+        return news_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

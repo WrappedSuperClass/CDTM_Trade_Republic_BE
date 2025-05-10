@@ -1,13 +1,40 @@
+import requests
 from openai import OpenAI
 from fastapi import HTTPException
 import os
 from dotenv import load_dotenv
+import json
+
 # Load environment variables
 load_dotenv()
 
 # Initialize OpenAI client
 YOUR_API_KEY = os.getenv('PERPLEXITY_API_KEY')
+LOGO_API_KEY = os.getenv('LOGO_API_KEY')
 client = OpenAI(api_key=YOUR_API_KEY, base_url="https://api.perplexity.ai")
+
+
+def get_company_logo(company_name: str) -> str:
+    company_name = company_name.split(" ")[0]
+    """Fragt die Logo.dev API nach dem Logo anhand des Firmennamens."""
+    search_url = "https://api.logo.dev/search"
+    headers = {"Authorization": f"Bearer {LOGO_API_KEY}"}
+    params = {"q": company_name}
+
+    try:
+        response = requests.get(search_url, headers=headers, params=params)
+        response.raise_for_status()
+        results = response.json()
+
+        if results and isinstance(results, list):
+            domain = results[0].get("domain")
+            if domain:
+                return f"https://img.logo.dev/{domain}?token=pk_Z7L8cnXPQ9-ezxAAjHAejA&size=128&format=png"
+        print(response.text)
+    except Exception as e:
+        print(f"Fehler bei Logo.dev Anfrage: {e}")
+
+    return ""
 
 async def get_news():
     messages = [
@@ -114,7 +141,18 @@ async def get_news():
                 }
             }
         )
-        return response
+
+        content = response.choices[0].message.content
+        if "<think>" in content:
+            content = content.split("</think>")[-1].strip()
+        json_response = json.loads(content)
+        
+        # Füge Logos für jeden Stock hinzu
+        for mover in json_response["movers"]:
+            logo_url = get_company_logo(mover["name"])
+            mover["logo"] = logo_url
+            
+        return json_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

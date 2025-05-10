@@ -1,7 +1,6 @@
 import sqlite3
-from datetime import datetime, date
+from datetime import date
 import json
-from pathlib import Path
 
 class NewsCache:
     def __init__(self, db_path="news_cache.db"):
