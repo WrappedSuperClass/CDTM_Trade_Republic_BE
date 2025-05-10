@@ -9,7 +9,7 @@ load_dotenv()
 YOUR_API_KEY = os.getenv('PERPLEXITY_API_KEY')
 client = OpenAI(api_key=YOUR_API_KEY, base_url="https://api.perplexity.ai")
 
-async def get_weather_in_berlin():
+async def get_news():
     messages = [
         {
             "role": "system",
@@ -27,7 +27,36 @@ async def get_weather_in_berlin():
         {   
             "role": "user",
             "content": (
-                "What is the weather today in Berlin?"
+            """
+Provide the top 10 stocks by absolute percent change traded on the US and European markets within the last 7 days.
+
+Return **only** valid minified JSON matching this exact schema:
+
+{
+  "asOf": "<ISO‑8601 UTC timestamp>",
+  "timeframe": "<human‑readable label, e.g. 'last 60 minutes'>",
+  "movers": [
+    {
+      "rank": <integer>,                  // 1 = largest mover
+      "isin": "<ISIN>",
+      "symbol": "<ticker>",
+      "name": "<company name>",
+      "percentChange": <number>,          // positive = up, negative = down
+      "direction": "up" | "down",
+      "story": "<max 60‑word plain‑language explanation of the main catalyst, ending with a period>",
+      "sources": ["<url1>", "<url2>"]     // up to 3 credible links; omit array or leave [] if unknown
+    }
+  ]
+}
+
+Constraints:
+• JSON only, no markdown.
+• The array must contain exactly 10 objects.
+• Use minified syntax (no pretty‑print spacing).
+• If the catalyst cannot be determined, set "story":"No clear catalyst identified." and leave "sources":[]. 
+• Do **NOT** invent ISINs, prices, or sources.
+
+"""
             ),
         },
     ]
@@ -35,7 +64,7 @@ async def get_weather_in_berlin():
     try:
         # chat completion without streaming
         response = client.chat.completions.create(
-            model="sonar-pro",
+            model="sonar-deep-research",
             messages=messages,
         )
         return response

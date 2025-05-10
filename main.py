@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
-from query_perplexity import get_weather_in_berlin
+from query_perplexity import get_news
 
 
 
@@ -18,13 +18,14 @@ app.add_middleware(
     allow_headers=[],
 )
 
-@app.get("/")
+@app.get("/getNews")
 async def root():
     try:
-        response = await get_weather_in_berlin()
+        response = await get_news()
         return response
     except HTTPException as e:
         return {"error": e.detail}
+    
 
 
 
