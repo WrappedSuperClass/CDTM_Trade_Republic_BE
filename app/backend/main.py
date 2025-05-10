@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from app.backend.query_perplexity import get_news, get_stock_movement
-from app.backend.news_cache import NewsCache
+from query_perplexity import get_news, get_stock_movement
+from news_cache import NewsCache
 import json
 
 
@@ -20,9 +20,11 @@ app.add_middleware(
     allow_headers=[],
 )
 
+
 class StockMovementRequest(BaseModel):
     ticker: str
     timeframe: str
+
 
 @app.get("/getNews")
 async def root():
@@ -43,6 +45,7 @@ async def root():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/stock-movement")
 async def query_stock_movement(request: StockMovementRequest):
     try:
@@ -54,7 +57,3 @@ async def query_stock_movement(request: StockMovementRequest):
         return json_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-
-
-
