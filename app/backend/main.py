@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
-from query_perplexity import get_news, get_stock_movement
+from app.backend.query_perplexity import get_news, get_stock_movement
 
 
 
