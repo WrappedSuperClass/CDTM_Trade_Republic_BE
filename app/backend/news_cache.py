@@ -53,12 +53,3 @@ class NewsCache:
                 VALUES (?, ?)
             """, (today, json.dumps(news_data)))
             conn.commit()
-
-    def clear_old_cache(self):
-        """Löscht abgelaufene Cache-Einträge."""
-        now = datetime.now()
-        
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM news_cache WHERE valid_until <= ?", (now.isoformat(),))
-            conn.commit() 
