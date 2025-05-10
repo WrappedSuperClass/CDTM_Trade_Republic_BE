@@ -16,56 +16,57 @@ async def get_news():
             "content": (
                 "You are a real‑time financial summarization assistant. "
                 "You have access to live market data, corporate news, and credible financial media. "
-                "When asked for “stock movers,” you must: "
+                "When asked for 'stock movers,' you must: "
                 " • Identify the securities with the largest absolute %‑price change within the requested window. "
                 " • Explain only the most plausible primary catalyst for each move."
-                " • Return output strictly as minified JSON that conforms to the schema the user provides (no markdown, no code fences, no extra keys, no commentary)."
-                "If you are unsure of a catalyst, state that explicitly and provide no sources."
-
             ),
         },
         {   
             "role": "user",
-            "content": (
-            """
-Provide the top 10 stocks by absolute percent change traded on the US and European markets within the last 7 days.
-
-Return **only** valid minified JSON matching this exact schema:
-
-{
-  "asOf": "<ISO‑8601 UTC timestamp>",
-  "timeframe": "<human‑readable label, e.g. 'last 60 minutes'>",
-  "movers": [
-    {
-      "rank": <integer>,                  // 1 = largest mover
-      "isin": "<ISIN>",
-      "symbol": "<ticker>",
-      "name": "<company name>",
-      "percentChange": <number>,          // positive = up, negative = down
-      "direction": "up" | "down",
-      "story": "<max 60‑word plain‑language explanation of the main catalyst, ending with a period>",
-      "sources": ["<url1>", "<url2>"]     // up to 3 credible links; omit array or leave [] if unknown
-    }
-  ]
-}
-
-Constraints:
-• JSON only, no markdown.
-• The array must contain exactly 10 objects.
-• Use minified syntax (no pretty‑print spacing).
-• If the catalyst cannot be determined, set "story":"No clear catalyst identified." and leave "sources":[]. 
-• Do **NOT** invent ISINs, prices, or sources.
-
-"""
-            ),
-        },
+            "content": "Provide the top 10 stocks by absolute percent change traded on the US and European markets within the last 7 days."
+        }
     ]
 
     try:
-        # chat completion without streaming
         response = client.chat.completions.create(
             model="sonar-deep-research",
             messages=messages,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "asOf": {"type": "string", "format": "date-time"},
+                            "timeframe": {"type": "string"},
+                            "movers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "rank": {"type": "integer"},
+                                        "isin": {"type": "string"},
+                                        "symbol": {"type": "string"},
+                                        "name": {"type": "string"},
+                                        "percentChange": {"type": "number"},
+                                        "direction": {"type": "string", "enum": ["up", "down"]},
+                                        "story": {"type": "string", "maxLength": 300},
+                                        "sources": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                            "maxItems": 3
+                                        }
+                                    },
+                                    "required": ["rank", "isin", "symbol", "name", "percentChange", "direction", "story", "sources"]
+                                },
+                                "minItems": 10,
+                                "maxItems": 10
+                            }
+                        },
+                        "required": ["asOf", "timeframe", "movers"]
+                    }
+                }
+            }
         )
         return response
     except Exception as e:
@@ -81,50 +82,56 @@ async def get_stock_movement(ticker: str, timeframe: str):
                 "When asked about specific stock movements, you must: "
                 " • Identify the significant price movements for the specified stock during the given timeframe. "
                 " • Explain the most plausible primary catalyst for each move."
-                " • Return output strictly as minified JSON that conforms to the schema the user provides (no markdown, no code fences, no extra keys, no commentary)."
-                "If you are unsure of a catalyst, state that explicitly and provide no sources."
             ),
         },
         {   
             "role": "user",
-            "content": (
-                f"""
-Analyze the stock movement for {ticker} during {timeframe}.
-
-Return **only** valid minified JSON matching this exact schema:
-
-{{
-  "asOf": "<ISO‑8601 UTC timestamp>",
-  "timeframe": "<human‑readable label of the analyzed period>",
-  "stock": {{
-    "symbol": "{ticker}",
-    "movements": [
-      {{
-        "date": "<ISO‑8601 date>",
-        "percentChange": <number>,          // positive = up, negative = down
-        "direction": "up" | "down",
-        "story": "<max 60‑word plain‑language explanation of the main catalyst, ending with a period>",
-        "sources": ["<url1>", "<url2>"]     // up to 3 credible links; omit array or leave [] if unknown
-      }}
-    ]
-  }}
-}}
-
-Constraints:
-• JSON only, no markdown.
-• Use minified syntax (no pretty‑print spacing).
-• If the catalyst cannot be determined, set "story":"No clear catalyst identified." and leave "sources":[].
-• Do **NOT** invent prices or sources.
-"""
-            ),
-        },
+            "content": f"Analyze the stock movement for {ticker} during {timeframe}."
+        }
     ]
 
     try:
-        # chat completion without streaming
         response = client.chat.completions.create(
             model="sonar-pro",
             messages=messages,
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "asOf": {"type": "string", "format": "date-time"},
+                            "timeframe": {"type": "string"},
+                            "stock": {
+                                "type": "object",
+                                "properties": {
+                                    "symbol": {"type": "string"},
+                                    "movements": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "date": {"type": "string", "format": "date"},
+                                                "percentChange": {"type": "number"},
+                                                "direction": {"type": "string", "enum": ["up", "down"]},
+                                                "story": {"type": "string", "maxLength": 300},
+                                                "sources": {
+                                                    "type": "array",
+                                                    "items": {"type": "string"},
+                                                    "maxItems": 3
+                                                }
+                                            },
+                                            "required": ["date", "percentChange", "direction", "story", "sources"]
+                                        }
+                                    }
+                                },
+                                "required": ["symbol", "movements"]
+                            }
+                        },
+                        "required": ["asOf", "timeframe", "stock"]
+                    }
+                }
+            }
         )
         return response
     except Exception as e:

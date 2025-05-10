@@ -1,13 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from openai import OpenAI
-from dotenv import load_dotenv
 from app.backend.query_perplexity import get_news, get_stock_movement
-
+from app.backend.news_cache import NewsCache
+import json
 
 
 app = FastAPI()
+
+# Initialize news cache
+news_cache = NewsCache()
 
 # Disable CORS
 app.add_middleware(
@@ -25,16 +27,31 @@ class StockMovementRequest(BaseModel):
 @app.get("/getNews")
 async def root():
     try:
+        cached_news = news_cache.get_cached_news()
+        if cached_news:
+            return cached_news
+
         response = await get_news()
-        return response
-    except HTTPException as e:
-        return {"error": e.detail}
+        content = response.choices[0].message.content
+        if "<think>" in content:
+            content = content.split("</think>")[-1].strip()
+        json_response = json.loads(content)
+
+        news_cache.store_news(json_response)
+
+        return json_response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/stock-movement")
 async def query_stock_movement(request: StockMovementRequest):
     try:
         response = await get_stock_movement(request.ticker, request.timeframe)
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        if "<think>" in content:
+            content = content.split("</think>")[-1].strip()
+        json_response = json.loads(content)
+        return json_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
