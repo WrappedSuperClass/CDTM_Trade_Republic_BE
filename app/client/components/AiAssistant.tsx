@@ -103,7 +103,7 @@ export function AiAssistant() {
             variant="solid"
             sx={{ backgroundColor: "black" }}
             onClick={() => {
-              formRef.current?.submit();
+              handleSubmit();
             }}
           >
             <ArrowUp />
