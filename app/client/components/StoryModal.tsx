@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-import { TopMovers } from "./TradeRepublicStories";
+import { TopMovers, TradeRepublicStories } from "./TradeRepublicStories";
 import { Stock, StockWithBack } from "@/app/page";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import IconButton from "@mui/joy/IconButton";
@@ -33,24 +33,14 @@ export function StoryModal({
   setViewedStory,
 }: StoryModalProps) {
   const [pageNumber, setPageNumber] = useState(0);
-  const [topMovers, setTopMovers] = useState<TopMovers | null>(null);
-  useEffect(() => {
-    fetch(`http://127.0.0.1:8000/getTopMovers`)
-      .then((res) => res.json())
-      .then((data) => setTopMovers(data));
-  }, []);
-
-  if (!content) {
-    return null;
-  }
-
-  const news = content.news[pageNumber];
 
   useEffect(() => {
-    news && setViewedStory(news.source + news.created_at);
-  }, [news]);
+    pageNumber === (content?.news.length ?? 0) - 1 &&
+      setViewedStory(content?.ticker ?? "");
+  }, [pageNumber]);
 
-  if (!topMovers && !news) {
+  const news = content?.news[pageNumber];
+  if (!news) {
     return null;
   }
 
@@ -96,9 +86,7 @@ export function StoryModal({
               />
               <DialogTitle className="text-md font-semibold">
                 {content.companyName}
-                <div className="text-gray-400 !text-sm">
-                  {topMovers?.asOf ?? news.created_at}
-                </div>
+                <div className="text-gray-400 !text-sm">{news.created_at}</div>
               </DialogTitle>
             </div>
             <div className="flex flex-row items-baseline gap-6">
@@ -120,8 +108,11 @@ export function StoryModal({
             </div>
           </DialogHeader>
 
-          {content.companyName === "Trade Republic" && topMovers ? (
-            <TopMovers data={topMovers} setContent={setContent} />
+          {content.companyName === "Trade Republic" ? (
+            <TradeRepublicStories
+              setContent={setContent}
+              pageNumber={pageNumber}
+            />
           ) : (
             <>
               <div className="flex flex-col">{news.headline}</div>

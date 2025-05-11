@@ -11,12 +11,14 @@ import { useEffect, useState } from "react";
 import { TopMovers } from "@/components/TradeRepublicStories";
 import { twMerge } from "tailwind-merge";
 
+
 // Add window interface declaration for TypeScript
 declare global {
   interface Window {
     fetchAndAddStock: (ticker: string) => Promise<void>;
   }
 }
+
 
 export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
 
@@ -92,15 +94,18 @@ export default function Home() {
   const [data, setData] = useState<Stock[] | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/getSubscriptionStories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
-        tickers: [...investments, ...following.filter(ticker => !skipNewsFor.includes(ticker))] 
-      }),
-    })
+
+    fetch(
+      "https://cdtm-trade-republic-be.onrender.com/getSubscriptionStories",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tickers: [...investments, ...following] }),
+      }
+    )
+
       .then((res) => res.json())
       .then((responseData: Data) => {
         if (!responseData.stock_news) return;
@@ -198,15 +203,17 @@ export default function Home() {
                   {chosenStock?.price}
                 </div>
                 <div className="flex items-center mt-1">
-                  <span
-                    className={twMerge(
-                      "text-green-500 mr-2",
-                      (chosenStock?.change ?? 0) < 0 && "text-red-500"
-                    )}
-                  >
-                    {chosenStock?.change ?? 0 > 0 ? "▲" : "▼"}{" "}
-                    {chosenStock?.change}%
-                  </span>
+                  {chosenStock?.change && (
+                    <span
+                      className={twMerge(
+                        "text-green-500 mr-2",
+                        (chosenStock?.change ?? 0) < 0 && "text-red-500"
+                      )}
+                    >
+                      {chosenStock?.change ?? 0 > 0 ? "▲" : "▼"}{" "}
+                      {chosenStock?.change}%
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -227,7 +234,20 @@ export default function Home() {
                     change: 0,
                     price: 0,
                     logo: "/logo.png",
-                    news: [],
+                    news: [
+                      {
+                        content: "Top Movers",
+                        created_at: "",
+                        headline: "Top Movers",
+                        source: "Top Movers",
+                      },
+                      {
+                        content: "Trade Republic Wrapped",
+                        created_at: "",
+                        headline: "Trade Republic Wrapped",
+                        source: "Trade Republic Wrapped",
+                      },
+                    ],
                   },
                   ...(data ?? []),
                 ]}

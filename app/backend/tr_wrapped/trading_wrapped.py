@@ -14,17 +14,21 @@ called directly from your own code.
 
 Dependencies: pandas >=1.5, numpy
 """
-
+import os
 import sys
 import datetime as dt
 from functools import lru_cache
-from typing import List
-
+from typing import List, Dict
 import numpy as np
 import pandas as pd
-
+from dotenv import load_dotenv
+from openai import OpenAI
+import yfinance as yf
+load_dotenv()
+MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
 DEFAULT_CSV = "trading_sample_data.csv"
+mistral_client = OpenAI(api_key=MISTRAL_API_KEY, base_url="https://api.mistral.ai/v1")
 
 
 def _load(csv_path: str) -> pd.DataFrame:
@@ -80,7 +84,7 @@ def _percentile(series: pd.Series, value: float) -> float:
 
 
 def get_trading_wrapped_points(
-    user_id: str, csv_path: str = DEFAULT_CSV
+    user_id: str="00909ba7-ad01-42f1-9074-2773c7d3cf2c", csv_path: str = DEFAULT_CSV
 ) -> List[str]:
     """Return 13 insight strings for *user_id* from *csv_path*."""
     agg_df, df = _aggregate(csv_path)
@@ -101,9 +105,10 @@ def get_trading_wrapped_points(
     # 1 — Opening trade
     first = df_user.iloc[0]
     earlier_pct = pct(agg_df["first_trade"], first["executedAt"])
+    company_name = get_company_name_from_isin(first["ISIN"])
     points.append(
         f"Opened the year on {first['executedAt']:%d %b %Y at %H:%M} "
-        f"with a {first['direction'].lower()} of {first['ISIN']} worth "
+        f"with a {first['direction'].lower()} of {company_name} worth "
         f"€{first['trade_value']:,.0f} – earlier than {earlier_pct:.0f}% of traders."
     )
 
@@ -129,8 +134,9 @@ def get_trading_wrapped_points(
     top_isins = (
         df_user.groupby("ISIN")["trade_value"].sum().sort_values(ascending=False).head(5)
     )
+    company_names = [get_company_name_from_isin(isin) for isin in top_isins.index]
     points.append(
-        "Top 5 tickets by volume: " + ", ".join(top_isins.index.tolist()) + "."
+        "Top 5 companies by volume: " + ", ".join(company_names) + "."
     )
 
     # 5 — World tour
@@ -144,8 +150,9 @@ def get_trading_wrapped_points(
     largest_row = df_user.loc[df_user["trade_value"].idxmax()]
     largest_val = largest_row["trade_value"]
     largest_pct = pct(agg_df["largest_trade"], largest_val)
+    company_name = get_company_name_from_isin(largest_row["ISIN"])
     points.append(
-        f"Largest single order: €{largest_val:,.0f} on {largest_row['ISIN']} – "
+        f"Largest single order: €{largest_val:,.0f} on {company_name} – "
         f"bigger than {largest_pct:.0f}% of all trades."
     )
 
@@ -218,6 +225,60 @@ def get_trading_wrapped_points(
     )
 
     return points
+
+
+def get_company_name_from_isin(isin: str) -> str:
+    """Ermittelt den Firmennamen anhand der ISIN mit Hilfe von Mistral AI."""
+    try:
+        # Extrahiere den Ticker aus der ISIN (erste zwei Zeichen sind das Land)
+        country_code = isin[:2]
+
+        response = mistral_client.chat.completions.create(
+            model="mistral-small",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Du bist ein Finanzassistent. Deine Aufgabe ist es, den vollständigen Firmennamen anhand einer ISIN zu ermitteln. Antworte NUR mit dem Firmennamen, ohne weitere Erklärungen, Formatierung oder Disclaimer. Beispiel: Für 'US0378331005' (Apple) antworte nur 'Apple Inc.'"
+                },
+                {
+                    "role": "user",
+                    "content": f"Was ist der vollständige Firmenname für die ISIN {isin}? Antworte nur mit dem Namen."
+                }
+            ],
+            temperature=0.1,  # Niedrige Temperatur für konsistente Antworten
+            max_tokens=50
+        )
+
+        company_name = response.choices[0].message.content.strip()
+
+        # Bereinige die Antwort
+        # Entferne alles nach dem ersten Zeilenumbruch
+        company_name = company_name.split('\n')[0]
+        # Entferne mögliche Anführungszeichen
+        company_name = company_name.strip('"\'')
+        # Entferne Disclaimer und ähnliche Texte
+        company_name = company_name.split('(')[0].strip()
+        company_name = company_name.split('[')[0].strip()
+        company_name = company_name.split('{')[0].strip()
+
+        # Wenn die Antwort leer ist oder nur aus der ISIN besteht, versuche es mit yfinance
+        if not company_name or company_name == isin:
+            try:
+                # Versuche es mit yfinance als Fallback
+                stock = yf.Ticker(isin)
+                company_name = stock.info.get('longName', isin)
+            except:
+                return isin
+
+        return company_name
+    except Exception as e:
+        print(f"Fehler beim Abrufen des Firmennamens für ISIN {isin}: {str(e)}")
+        try:
+            # Fallback auf yfinance
+            stock = yf.Ticker(isin)
+            return stock.info.get('longName', isin)
+        except:
+            return isin
 
 
 if __name__ == "__main__":
