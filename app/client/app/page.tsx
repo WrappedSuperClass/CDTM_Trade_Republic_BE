@@ -7,6 +7,7 @@ import StockList from "@/components/stock-list";
 import TimeFilter from "@/components/time-filter";
 import { Stories } from "@/components/Stories";
 import { AiAssistant } from "@/components/AiAssistant";
+import { VoiceAgent } from "@/components/VoiceAgent";
 import { useState } from "react";
 
 export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
@@ -99,28 +100,37 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Investments Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Investments</h2>
-              <div className="flex items-center">
-                <span className="text-blue-400 text-sm">Since buy</span>
-                <svg
-                  className="w-4 h-4 text-blue-400 ml-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+          {/* Right Side Section */}
+          <div className="space-y-8">
+            {/* Voice Agent */}
+            <div className="h-[600px]">
+              <h2 className="text-xl font-bold mb-4">Voice Assistant</h2>
+              <VoiceAgent />
             </div>
-            <StockList />
+
+            {/* Investments Section */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold">Investments</h2>
+                <div className="flex items-center">
+                  <span className="text-blue-400 text-sm">Since buy</span>
+                  <svg
+                    className="w-4 h-4 text-blue-400 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <StockList />
+            </div>
           </div>
         </div>
         <AiAssistant />
