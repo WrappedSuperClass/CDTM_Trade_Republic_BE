@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { TopMovers } from "@/components/TradeRepublicStories";
 import { twMerge } from "tailwind-merge";
 
+
 export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
 
 interface Data {
@@ -189,6 +190,7 @@ export default function Home() {
                 <h2 className="text-xl font-bold">Investments</h2>
                 <div className="flex items-center">
                   <span className="text-blue-400 text-sm">Daily</span>
+
                   <svg
                     className="w-4 h-4 text-blue-400 ml-1"
                     fill="none"
