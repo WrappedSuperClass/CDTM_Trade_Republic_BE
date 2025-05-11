@@ -50,7 +50,7 @@ async def get_news():
                 "You are a real‑time financial summarization assistant. "
                 "You have access to live market data, corporate news, and credible financial media. "
                 "When asked for 'stock movers,' you must: "
-                " • Identify the 10 most significant stock movements (both up and down) based on absolute percentage change. "
+                " • Identify the 3 most significant stock gains and 3 most significant stock losses based on absolute percentage change. "
                 " • Focus on stocks with meaningful market impact and trading volume. "
                 " • Exclude penny stocks and stocks with very low trading volume. "
                 " • Explain the most plausible primary catalyst for each move. "
@@ -62,10 +62,9 @@ async def get_news():
         {   
             "role": "user",
             "content": (
-                "Provide the 10 most significant stock movements (both up and down) traded on the US and European markets within the last 7 days. "
+                "Provide the 3 most significant stock gains and 3 most significant stock losses traded on the US and European markets within the last 7 days. "
                 "Focus on stocks with meaningful market impact and trading volume. "
                 "Exclude penny stocks and stocks with very low trading volume. "
-                "Return the results sorted by absolute percentage change, regardless of direction. "
                 "For each movement, include actual URLs to news articles or financial reports that explain the price movement."
             )
         }
@@ -92,7 +91,7 @@ async def get_news():
                             },
                             "movers": {
                                 "type": "array",
-                                "description": "List of the 10 most significant stock movements",
+                                "description": "List of the most significant stock movements (3 gains and 3 losses)",
                                 "items": {
                                     "type": "object",
                                     "properties": {
@@ -138,8 +137,8 @@ async def get_news():
                                     },
                                     "required": ["rank", "isin", "symbol", "name", "percentChange", "direction", "story", "sources"]
                                 },
-                                "minItems": 10,
-                                "maxItems": 10
+                                "minItems": 6,
+                                "maxItems": 6
                             }
                         },
                         "required": ["asOf", "timeframe", "movers"]
