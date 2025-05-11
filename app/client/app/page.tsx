@@ -148,15 +148,17 @@ export default function Home() {
                   {chosenStock?.price}
                 </div>
                 <div className="flex items-center mt-1">
-                  <span
-                    className={twMerge(
-                      "text-green-500 mr-2",
-                      (chosenStock?.change ?? 0) < 0 && "text-red-500"
-                    )}
-                  >
-                    {chosenStock?.change ?? 0 > 0 ? "▲" : "▼"}{" "}
-                    {chosenStock?.change}%
-                  </span>
+                  {chosenStock?.change && (
+                    <span
+                      className={twMerge(
+                        "text-green-500 mr-2",
+                        (chosenStock?.change ?? 0) < 0 && "text-red-500"
+                      )}
+                    >
+                      {chosenStock?.change ?? 0 > 0 ? "▲" : "▼"}{" "}
+                      {chosenStock?.change}%
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -164,13 +166,7 @@ export default function Home() {
             <TimeFilter setTimeframe={setTimeframe} timeframe={timeframe} />
 
             <div className="mt-4 h-80">
-              {chosenStock ? (
-                <StockChart timeframe={timeframe} stock={chosenStock} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-400">Select a stock to view</p>
-                </div>
-              )}
+              <StockChart timeframe={timeframe} stock={chosenStock} />
             </div>
 
             <div className="mt-16">

@@ -7,6 +7,7 @@ import { Timeframe, Stock } from "@/app/page";
 interface StockData {
   close: number;
   timestamp: string;
+  balance: number;
 }
 
 export default function StockChart({
@@ -14,23 +15,29 @@ export default function StockChart({
   stock,
 }: {
   timeframe: Timeframe;
-  stock: Stock;
+  stock: Stock | null;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [data, setData] = useState<StockData[]>([]);
   useEffect(() => {
     fetch(
-      `http://127.0.0.1:8000/stock-data?ticker=${stock?.ticker}&period=${timeframe}`,
+      stock?.ticker
+        ? `https://cdtm-trade-republic-be.onrender.com/stock-data?ticker=${stock.ticker}&period=${timeframe}`
+        : `https://cdtm-trade-republic-be.onrender.com/transaction-insights`,
       {
         cache: "no-store",
       }
     )
       .then((response) => response.json())
-      .then((data) => setData(data.historical_data));
+      .then((data) =>
+        setData(stock?.ticker ? data.historical_data : data.transaktionen)
+      );
   }, [timeframe, stock]);
 
   if (!data || data.length === 0) return null;
-  const chartData = data?.map((data) => data.close);
+  const chartData = data?.map((data) =>
+    stock?.ticker ? data.close : data.balance
+  );
   const xAxisData = data.map((data) => {
     return new Date(data.timestamp);
   });

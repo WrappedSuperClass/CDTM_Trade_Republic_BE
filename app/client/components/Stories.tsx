@@ -12,7 +12,6 @@ export function Stories({ stories }: { stories: Stock[] }) {
   );
   const [viewedStories, setViewedStories] = useState<string[]>([]);
 
-  console.log(viewedStories);
   return (
     <>
       {selectedStory && (

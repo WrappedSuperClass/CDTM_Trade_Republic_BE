@@ -1,25 +1,50 @@
 import Image from "next/image";
 import { Stock, StockWithBack } from "@/app/page";
+import { useEffect, useState } from "react";
 
 export function TradeRepublicStories({
   pageNumber,
-  data,
   setContent,
 }: {
   pageNumber: number;
-  data: TopMovers;
   setContent: (content: StockWithBack) => void;
 }) {
-  if (pageNumber === 0) {
-    return <TopMovers data={data} setContent={setContent} />;
+  const [wrapped, setWrapped] = useState<{ points: string[] } | null>(null);
+  const [topMovers, setTopMovers] = useState<TopMovers | null>(null);
+  useEffect(() => {
+    fetch(`https://cdtm-trade-republic-be.onrender.com/getTopMovers/`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTopMovers(data);
+      });
+
+    fetch(`https://cdtm-trade-republic-be.onrender.com/trading-wrapped/`)
+      .then((res) => res.json())
+      .then((data) => {
+        setWrapped(data);
+      });
+  }, []);
+  if (!topMovers || !wrapped) {
+    return <div>Loading...</div>;
   }
-  return <Wrapped />;
+
+  if (pageNumber === 0) {
+    return <TopMovers data={topMovers} setContent={setContent} />;
+  }
+  return <Wrapped wrapped={wrapped.points} />;
 }
 
-export function Wrapped({}: {}) {
+export function Wrapped({ wrapped }: { wrapped: string[] }) {
   return (
     <div>
-      <h1>Hello</h1>
+      <div className="text-xl mb-4">Trade Republic Wrapped</div>
+      <div className="flex flex-col gap-2">
+        {wrapped.map((w) => (
+          <div className="text-base" key={w}>
+            {w}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

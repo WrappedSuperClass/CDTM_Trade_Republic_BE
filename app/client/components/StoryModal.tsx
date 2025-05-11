@@ -33,14 +33,6 @@ export function StoryModal({
   setViewedStory,
 }: StoryModalProps) {
   const [pageNumber, setPageNumber] = useState(0);
-  const [topMovers, setTopMovers] = useState<TopMovers | null>(null);
-  useEffect(() => {
-    fetch(`https://cdtm-trade-republic-be.onrender.com/getTopMovers/`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTopMovers(data);
-      });
-  }, []);
 
   useEffect(() => {
     pageNumber === (content?.news.length ?? 0) - 1 &&
@@ -48,7 +40,7 @@ export function StoryModal({
   }, [pageNumber]);
 
   const news = content?.news[pageNumber];
-  if (!topMovers || !news) {
+  if (!news) {
     return null;
   }
 
@@ -120,7 +112,6 @@ export function StoryModal({
             <TradeRepublicStories
               setContent={setContent}
               pageNumber={pageNumber}
-              data={topMovers}
             />
           ) : (
             <>
