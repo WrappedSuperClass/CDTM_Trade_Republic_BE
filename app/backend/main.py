@@ -131,7 +131,7 @@ async def get_stock_data(ticker: str, period: str = "d"):
     
 
 @app.get("/trading-wrapped")
-async def get_trading_wrapped(user_id: str):
+async def get_trading_wrapped(user_id: str = "00909ba7-ad01-42f1-9074-2773c7d3cf2c"):
     try:
         from tr_wrapped.trading_wrapped import get_trading_wrapped_points
         
@@ -177,5 +177,21 @@ async def get_subscription_stories(request: SubscriptionStoryRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
+@app.get("/transaction-insights")
+async def get_transaction_insights(user_id: str = "00909ba7-ad01-42f1-9074-2773c7d3cf2c"):
+    try:
+        from transactions.banking_balance import get_balance_over_time
+        
+        # Get the absolute path to the CSV file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, "transactions", "banking_sample_data.csv")
+        
+        insights = get_balance_over_time(user_id, csv_path)
+        return insights
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     

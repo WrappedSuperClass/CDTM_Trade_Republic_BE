@@ -80,7 +80,7 @@ def _percentile(series: pd.Series, value: float) -> float:
 
 
 def get_trading_wrapped_points(
-    user_id: str, csv_path: str = DEFAULT_CSV
+    user_id: str="00909ba7-ad01-42f1-9074-2773c7d3cf2c", csv_path: str = DEFAULT_CSV
 ) -> List[str]:
     """Return 13 insight strings for *user_id* from *csv_path*."""
     agg_df, df = _aggregate(csv_path)
