@@ -2,6 +2,22 @@
 
 > ⚠️ **IMPORTANT: This application is optimized for Google Chrome. For the best experience, please use Chrome as your browser.**
 
+## Voice Agent Capabilities
+
+The application includes an intelligent voice agent that can help you analyze stocks and market movements. Here are some example interactions:
+
+1. **Stock Tracking**
+   - "Follow General Motors stock for me"
+   - "I want to follow SAP performance"
+   - "See how relevant stories are generated!"
+
+2. **Market Analysis**
+   - "Why did NVIDIA drop significantly on January 26, 2025?"
+   - "What caused the market dip yesterday on stock XYZ?"
+   - "Explain the recent volatility in tech stocks"
+
+The voice agent uses advanced AI and deep research to provide detailed analysis of market movements, combining real-time data with historical context and news events.
+
 A modern web application that provides financial data analysis and insights, built with FastAPI and Next.js.
 
 ## Project Structure
