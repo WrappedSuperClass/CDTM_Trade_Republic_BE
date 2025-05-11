@@ -263,7 +263,7 @@ RELEVANT_KEYWORDS = ["record", "earnings", "beats", "acquisition", "upgrade", "f
 TRUSTED_SOURCES = ["Reuters", "Bloomberg", "CNBC", "Yahoo", "WSJ", "MarketWatch"]
 
 def get_stock_news(ticker: str, days_back: int = 3) -> List[NewsStory]:
-    """Holt News für einen bestimmten Ticker und gibt sie als Dictionary mit NewsStory-Objekten zurück."""
+    """Holt News für einen bestimmten Ticker und gibt maximal 4 Stories zurück."""
     to_date = datetime.today().date()
     from_date = to_date - timedelta(days=days_back)
     print(f"News for {ticker} from {from_date} to {to_date}")
@@ -286,27 +286,38 @@ def get_stock_news(ticker: str, days_back: int = 3) -> List[NewsStory]:
             a for a in articles
             if any(kw.lower() in a["headline"].lower() for kw in RELEVANT_KEYWORDS)
             and any(src.lower() in a["source"].lower() for src in TRUSTED_SOURCES)
+            and isinstance(a.get("datetime"), (int, float))  # Stelle sicher, dass datetime ein numerischer Wert ist
         ]
 
         if not relevant_articles:
             print("Keine besonders relevanten Artikel gefunden.")
             return []
 
+        # Sortiere nach Datum (neueste zuerst) und nehme maximal 4 Artikel
+        relevant_articles.sort(key=lambda x: x["datetime"], reverse=True)
+        relevant_articles = relevant_articles[:4]
+
         # Extrahiere die relevanten Felder für NewsStory
         formatted_articles = []
         company_name = get_company_name(ticker)
         company_logo = get_company_logo(company_name)
         for article in relevant_articles:
-            formatted_article = NewsStory(
-                companyName=company_name,
-                ticker=ticker,
-                headline=article["headline"],
-                content=article["summary"],
-                source=article["source"],
-                logo=company_logo,
-                created_at=datetime.fromtimestamp(article["datetime"])
-            )
-            formatted_articles.append(formatted_article)
+            try:
+                # Konvertiere Unix-Timestamp (Sekunden) zu datetime
+                created_at = datetime.fromtimestamp(article["datetime"])
+                formatted_article = NewsStory(
+                    companyName=company_name,
+                    ticker=ticker,
+                    headline=article["headline"],
+                    content=article["summary"],
+                    source=article["url"],
+                    logo=company_logo,
+                    created_at=created_at
+                )
+                formatted_articles.append(formatted_article)
+            except (ValueError, TypeError) as e:
+                print(f"Fehler bei der Verarbeitung des Artikels: {str(e)}")
+                continue
 
         return formatted_articles
 
@@ -323,11 +334,11 @@ def get_company_name(ticker: str) -> str:
             messages=[
                 {
                     "role": "system",
-                    "content": "Du bist ein Finanzassistent. Deine Aufgabe ist es, den vollständigen Firmennamen anhand eines Aktientickers zu ermitteln. Antworte NUR mit dem Firmennamen, ohne weitere Erklärungen oder Formatierung."
+                    "content": "Du bist ein Finanzassistent. Deine Aufgabe ist es, den vollständigen Firmennamen anhand eines Aktientickers zu ermitteln. Antworte NUR mit dem Firmennamen, ohne weitere Erklärungen, Formatierung oder Disclaimer. Beispiel: Für 'AAPL' antworte nur 'Apple Inc.'"
                 },
                 {
                     "role": "user",
-                    "content": f"Was ist der vollständige Firmenname für den Aktienticker {ticker}?"
+                    "content": f"Was ist der vollständige Firmenname für den Aktienticker {ticker}? Antworte nur mit dem Namen."
                 }
             ],
             temperature=0.1,  # Niedrige Temperatur für konsistente Antworten
@@ -335,9 +346,21 @@ def get_company_name(ticker: str) -> str:
         )
         
         company_name = response.choices[0].message.content.strip()
-        # Entferne mögliche Anführungszeichen und zusätzliche Formatierung
-        company_name = company_name.strip('"\'')
         
+        # Bereinige die Antwort
+        # Entferne alles nach dem ersten Zeilenumbruch
+        company_name = company_name.split('\n')[0]
+        # Entferne mögliche Anführungszeichen
+        company_name = company_name.strip('"\'')
+        # Entferne Disclaimer und ähnliche Texte
+        company_name = company_name.split('(')[0].strip()
+        company_name = company_name.split('[')[0].strip()
+        company_name = company_name.split('{')[0].strip()
+        
+        # Wenn die Antwort leer ist oder nur aus dem Ticker besteht, gib den Ticker zurück
+        if not company_name or company_name.upper() == ticker.upper():
+            return ticker
+            
         return company_name
     except Exception as e:
         print(f"Fehler beim Abrufen des Firmennamens für {ticker}: {str(e)}")

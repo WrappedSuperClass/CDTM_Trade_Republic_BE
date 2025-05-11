@@ -159,17 +159,19 @@ async def get_subscription_stories(request: SubscriptionStoryRequest):
             try:
                 ticker_stories = get_stock_news(ticker)
                 if ticker_stories:  # Nur wenn Stories gefunden wurden
-                    stories[ticker] = ticker_stories
-                    # Speichere jede Story in der Datenbank
                     for story in ticker_stories:
                         news_cache.store_subscription_story(story)
+                    stories[ticker] = news_cache.get_subscription_stories_by_ticker(ticker)
             except Exception as e:
                 print(f"Fehler beim Abrufen der News für {ticker}: {str(e)}")
                 continue
         
-        return {"stories": stories}
+        # Transformiere die Stories in das gewünschte Format
+        transformed_stories = news_cache.transform_stories_with_stock_data(stories)
+        
+        return {"stock_news": transformed_stories}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-    
+
     
