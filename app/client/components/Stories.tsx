@@ -4,41 +4,57 @@ import Image from "next/image";
 import { twMerge } from "tailwind-merge";
 import { StoryModal } from "./StoryModal";
 import { useState } from "react";
+import { Stock, StockWithBack } from "@/app/page";
 
-export function Stories() {
-  const stories = [
-    {
-      id: "Trade Republic",
-      src: "/logo.png",
-      newStory: false,
-      companyName: "Trade Republic",
-    },
-    ...Array.from({ length: 30 }, (_, index) => ({
-      id: "a" + index + 1,
-      src: "https://www.citypng.com/public/uploads/preview/hd-nvidia-eye-logo-icon-png-701751694965655t2lbe7yugk.png?v=2025050614",
-      newStory: index % 3,
-    })),
-  ];
-  const [modal, setModal] = useState<string | null>(null);
+export function Stories({ stories }: { stories: Stock[] }) {
+  const [selectedStory, setSelectedStory] = useState<StockWithBack | null>(
+    null
+  );
+  const [viewedStories, setViewedStories] = useState<
+    { ticker: string; stories: string[] }[]
+  >([]);
+
+  console.log(viewedStories);
   return (
     <>
-      <StoryModal
-        isOpen={modal}
-        onClose={() => setModal(null)}
-        companyName={stories.find((story) => story.id === modal)?.id}
-        companyLogo={stories.find((story) => story.id === modal)?.src}
-        isFollowing={false}
-        onFollowToggle={() => {}}
-        onTrade={() => {}}
-      />
+      {selectedStory && (
+        <StoryModal
+          content={selectedStory}
+          setContent={setSelectedStory}
+          isOpen={!!selectedStory}
+          onClose={() => setSelectedStory(null)}
+          isFollowing={false}
+          onFollowToggle={() => {}}
+          onTrade={() => {}}
+          setViewedStory={(story) => {
+            setViewedStories((prev) =>
+              prev.find((s) => s.ticker === selectedStory?.ticker)
+                ? prev.map((s) =>
+                    s.ticker === selectedStory?.ticker
+                      ? { ...s, stories: [...s.stories, story] }
+                      : s
+                  )
+                : [...prev, { ticker: selectedStory?.ticker, stories: [story] }]
+            );
+          }}
+        />
+      )}
       <div className="flex gap-4 overflow-x-auto pb-4 white-scrollbar">
         {stories.map((story) => (
           <StoryItem
-            key={story.id}
-            src={story.src}
-            newStory={story.newStory}
-            companyId="test"
-            onClick={() => setModal(story.id)}
+            story={story}
+            onClick={() => {
+              setSelectedStory({
+                ...story,
+                previous: false,
+              });
+            }}
+            key={story.ticker}
+            newStory={
+              (viewedStories.find((vstory) => vstory.ticker === story.ticker)
+                ?.stories.length ?? 0) <
+              (stories.find((s) => s.ticker === story.ticker)?.news.length ?? 0)
+            }
           />
         ))}
       </div>
@@ -47,28 +63,33 @@ export function Stories() {
 }
 
 function StoryItem({
-  companyId,
-  src,
-  newStory,
+  story,
   onClick,
+  newStory,
 }: {
-  companyId: string;
-  src: string;
-  newStory: boolean;
+  story: Stock;
   onClick: () => void;
+  newStory: boolean;
 }) {
   return (
-    <Image
-      src={src ?? null}
-      alt="Logo"
-      width={64}
-      height={64}
+    <div
       className={twMerge(
-        "rounded-full p-1 cursor-pointer hover:brightness-75 transition-all duration-100",
+        "rounded-full grid place-items-center",
         newStory &&
-          "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
+          "p-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
       )}
-      onClick={onClick}
-    />
+    >
+      <Image
+        src={story.logo}
+        alt="Logo"
+        width={64}
+        height={64}
+        className={twMerge(
+          "rounded-full cursor-pointer hover:brightness-75 transition-all duration-100 bg-white",
+          ["AAPL", "MSFT"].includes(story.ticker) && "p-1"
+        )}
+        onClick={onClick}
+      />
+    </div>
   );
 }

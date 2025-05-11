@@ -41,6 +41,8 @@ class SubscriptionStoryRequest(BaseModel):
 
 @app.get("/getTopMovers")
 async def root():
+    print("test")
+
     try:
         cached_news = news_cache.get_cached_news()
         if cached_news:
@@ -166,8 +168,10 @@ async def get_subscription_stories(request: SubscriptionStoryRequest):
                 print(f"Fehler beim Abrufen der News für {ticker}: {str(e)}")
                 continue
         
+        print("stories", stories)
         # Transformiere die Stories in das gewünschte Format
         transformed_stories = news_cache.transform_stories_with_stock_data(stories)
+        print("transformed_stories", transformed_stories)
         
         return {"stock_news": transformed_stories}
     except Exception as e:

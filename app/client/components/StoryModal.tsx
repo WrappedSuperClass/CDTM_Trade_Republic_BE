@@ -7,76 +7,149 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-
+import { TopMovers } from "./TradeRepublicStories";
+import { Stock, StockWithBack } from "@/app/page";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import IconButton from "@mui/joy/IconButton";
 interface StoryModalProps {
+  content: StockWithBack | null;
+  setContent: (content: StockWithBack) => void;
   isOpen: boolean;
   onClose: () => void;
-  companyName: string;
-  companyLogo: string;
-  content: string;
   isFollowing: boolean;
   onFollowToggle: () => void;
   onTrade: () => void;
+  setViewedStory: (story: string) => void;
 }
 
-interface TopMovers {}
-
 export function StoryModal({
+  content,
+  setContent,
   isOpen,
   onClose,
-  companyName,
-  companyLogo,
-  content,
   isFollowing,
   onFollowToggle,
   onTrade,
+  setViewedStory,
 }: StoryModalProps) {
-  const [news, setNews] = useState<any[]>([]);
+  const [pageNumber, setPageNumber] = useState(0);
+  const [topMovers, setTopMovers] = useState<TopMovers | null>(null);
   useEffect(() => {
     fetch(`http://127.0.0.1:8000/getTopMovers`)
       .then((res) => res.json())
-      .then((data) => setNews(data));
+      .then((data) => setTopMovers(data));
   }, []);
 
-  console.log(news);
-  // const movers = news?.map((item) => item.ticker);
+  if (!content) {
+    return null;
+  }
+
+  const news = content.news[pageNumber];
+
+  useEffect(() => {
+    news && setViewedStory(news.source + news.created_at);
+  }, [news]);
+
+  if (!topMovers && !news) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image
-              src={companyLogo}
-              alt={`${companyName} logo`}
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
-            <DialogTitle className="text-lg font-semibold">
-              {companyName}
-            </DialogTitle>
-          </div>
-          <div className="flex flex-row items-baseline gap-6">
-            <Button
-              variant={isFollowing ? "outline" : "default"}
-              size="sm"
-              onClick={onFollowToggle}
-              className={isFollowing ? "border-gray-600 hover:bg-gray-800" : ""}
-            >
-              {isFollowing ? "Unfollow" : "Follow"}
-            </Button>
-            <div className="cursor-pointer  rounded-sm" onClick={onClose}>
-              X
+      <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800 outline-none flex items-center justify-center gap-16">
+        {pageNumber > 0 && (
+          <IconButton
+            sx={{ marginLeft: "-100px", color: "white" }}
+            variant="plain"
+            onClick={() => {
+              setPageNumber(pageNumber - 1);
+            }}
+          >
+            <ChevronLeft />
+          </IconButton>
+        )}
+        <div className="grow">
+          <DialogHeader className="flex flex-row items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              {content.previous && (
+                <ChevronLeft
+                  className="cursor-pointer w-7 h-7 p-1 -mr-1 -ml-4 hover:bg-gray-800 rounded-lg"
+                  onClick={() => {
+                    setContent({
+                      ticker: "TRD",
+                      companyName: "Trade Republic",
+                      change: 0,
+                      logo: "/logo.png",
+                      news: [],
+                      price: 0,
+                      previous: false,
+                    });
+                  }}
+                />
+              )}
+              <Image
+                src={content.logo}
+                alt={`${content.companyName} logo`}
+                width={35}
+                height={35}
+                className="rounded-full"
+              />
+              <DialogTitle className="text-md font-semibold">
+                {content.companyName}
+                <div className="text-gray-400 !text-sm">
+                  {topMovers?.asOf ?? news.created_at}
+                </div>
+              </DialogTitle>
             </div>
-          </div>
-        </DialogHeader>
-        <div className="mt-4 text-gray-200">{content}</div>
-        <div className="mt-6 flex justify-end">
-          <Button onClick={onTrade} variant="secondary">
-            Trade
-          </Button>
+            <div className="flex flex-row items-baseline gap-6">
+              {content.companyName !== "Trade Republic" && (
+                <Button
+                  variant={isFollowing ? "outline" : "default"}
+                  size="sm"
+                  onClick={onFollowToggle}
+                  className={
+                    isFollowing ? "border-gray-600 hover:bg-gray-800" : ""
+                  }
+                >
+                  {isFollowing ? "Unfollow" : "Follow"}
+                </Button>
+              )}
+              <div className="cursor-pointer  rounded-sm" onClick={onClose}>
+                X
+              </div>
+            </div>
+          </DialogHeader>
+
+          {content.companyName === "Trade Republic" && topMovers ? (
+            <TopMovers data={topMovers} setContent={setContent} />
+          ) : (
+            <>
+              <div className="flex flex-col">{news.headline}</div>
+              <div className="flex flex-col">{news.content}</div>
+            </>
+          )}
+
+          {content.companyName !== "Trade Republic" && (
+            <div className="mt-6 flex justify-end">
+              <Button onClick={onTrade} variant="secondary">
+                Trade
+              </Button>
+            </div>
+          )}
         </div>
+        {pageNumber < content.news.length - 1 && (
+          <IconButton
+            sx={{
+              marginRight: "-100px",
+              color: "white",
+            }}
+            onClick={() => {
+              setPageNumber(pageNumber + 1);
+            }}
+          >
+            <ChevronRight />
+          </IconButton>
+        )}
       </DialogContent>
     </Dialog>
   );

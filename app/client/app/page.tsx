@@ -7,12 +7,76 @@ import StockList from "@/components/stock-list";
 import TimeFilter from "@/components/time-filter";
 import { Stories } from "@/components/Stories";
 import { AiAssistant } from "@/components/AiAssistant";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { TopMovers } from "@/components/TradeRepublicStories";
+import { twMerge } from "tailwind-merge";
 
 export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
 
+interface Data {
+  stock_news: {
+    [key: string]: BaseData;
+  };
+}
+
+interface BaseData {
+  companyName: string;
+  change: number;
+  logo: string;
+  price: number;
+  news: {
+    content: string;
+    created_at: string;
+    headline: string;
+    source: string;
+  }[];
+}
+
+export interface Stock extends BaseData {
+  ticker: string;
+}
+export interface StockWithBack extends Stock {
+  previous: boolean;
+}
+
 export default function Home() {
   const [timeframe, setTimeframe] = useState<Timeframe>("1d");
+  const [chosenStock, setChosenStock] = useState<Stock | null>(null);
+  const [following, setFollowing] = useState<string[]>([
+    "TSLA",
+    "GOOGL",
+    "NFLX",
+  ]);
+  const followStock = (ticker: string) => {
+    setFollowing((prev) => [...prev, ticker]);
+  };
+
+  const [investments, setInvestments] = useState<string[]>([
+    "AMZN",
+    "NVDA",
+    "AAPL",
+    "MSFT",
+  ]);
+  const [data, setData] = useState<Stock[] | null>(null);
+
+  useEffect(() => {
+    fetch("http://localhost:8000/getSubscriptionStories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tickers: [...investments, ...following] }),
+    })
+      .then((res) => res.json())
+      .then((data: Data) =>
+        setData(
+          Object.entries(data.stock_news).map(([ticker, stock]) => ({
+            ...stock,
+            ticker,
+          }))
+        )
+      );
+  }, [following]);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -74,53 +138,108 @@ export default function Home() {
           <div className="lg:col-span-2">
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h1 className="text-2xl font-bold">Portfolio</h1>
-                <div className="text-4xl font-bold mt-2">1,065.25 €</div>
+                <h1 className="text-2xl font-bold">
+                  {chosenStock?.companyName ?? "Portfolio"}
+                </h1>
+                <div className="text-4xl font-bold mt-2">
+                  {chosenStock?.price}
+                </div>
                 <div className="flex items-center mt-1">
-                  <span className="text-green-500 mr-2">▲ 4.78 €</span>
-                  <span className="text-green-500">(0.45 %)</span>
+                  <span
+                    className={twMerge(
+                      "text-green-500 mr-2",
+                      (chosenStock?.change ?? 0) < 0 && "text-red-500"
+                    )}
+                  >
+                    {chosenStock?.change ?? 0 > 0 ? "▲" : "▼"}{" "}
+                    {chosenStock?.change}%
+                  </span>
                 </div>
               </div>
-              <button className="p-2 rounded-full hover:bg-gray-800">
-                <RefreshCcw className="w-5 h-5 text-gray-400" />
-              </button>
             </div>
 
             <TimeFilter setTimeframe={setTimeframe} timeframe={timeframe} />
 
             <div className="mt-4 h-80">
-              <StockChart timeframe={timeframe} />
+              <StockChart timeframe={timeframe} stock={chosenStock} />
             </div>
 
             <div className="mt-16">
               <h2 className="text-2xl font-bold mb-4">Stories</h2>
-              <Stories />
-              {/* Top movers content would go here */}
+              <Stories
+                stories={[
+                  {
+                    ticker: "TRP",
+                    companyName: "Trade Republic",
+                    change: 0,
+                    price: 0,
+                    logo: "/logo.png",
+                    news: [],
+                  },
+                  ...(data ?? []),
+                ]}
+              />
             </div>
           </div>
 
-          {/* Investments Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Investments</h2>
-              <div className="flex items-center">
-                <span className="text-blue-400 text-sm">Since buy</span>
-                <svg
-                  className="w-4 h-4 text-blue-400 ml-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+          <div className="flex flex-col gap-4">
+            {/* Investments Section */}
+            <div className="flex flex-col mb-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Investments</h2>
+                <div className="flex items-center">
+                  <span className="text-blue-400 text-sm">Daily</span>
+                  <svg
+                    className="w-4 h-4 text-blue-400 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
+              <StockList
+                setChosenStock={setChosenStock}
+                stocks={
+                  data?.filter((stock) => investments.includes(stock.ticker)) ??
+                  []
+                }
+              />
             </div>
-            <StockList />
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">Following</h2>
+                <div className="flex items-center">
+                  <span className="text-blue-400 text-sm">Daily</span>
+                  <svg
+                    className="w-4 h-4 text-blue-400 ml-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <StockList
+                setChosenStock={setChosenStock}
+                stocks={
+                  data?.filter((stock) => following.includes(stock.ticker)) ??
+                  []
+                }
+              />
+            </div>
           </div>
         </div>
         <AiAssistant />
