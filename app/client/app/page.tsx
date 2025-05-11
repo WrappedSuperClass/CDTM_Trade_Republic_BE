@@ -102,11 +102,7 @@ export default function Home() {
 
           {/* Right Side Section */}
           <div className="space-y-8">
-            {/* Voice Agent */}
-            <div className="h-[600px]">
-              <h2 className="text-xl font-bold mb-4">Voice Assistant</h2>
-              <VoiceAgent />
-            </div>
+           
 
             {/* Investments Section */}
             <div>
