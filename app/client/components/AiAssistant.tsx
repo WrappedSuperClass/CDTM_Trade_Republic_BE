@@ -324,108 +324,106 @@ export function AiAssistant() {
       className="flex flex-col items-start fixed bottom-4 left-4 gap-2 z-50 font-sans"
       ref={ref}
     >
-      <div
-        className={twMerge(
-          "w-[440px] bg-black rounded-2xl shadow-2xl transition-all duration-300 transform border border-neutral-800",
-          active ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none",
-          active && "opacity-100 pointer-events-auto"
-        )}
-      >
-        {/* Header */}
-        <div className="px-6 pt-6 pb-2">
-          <div className="text-2xl font-bold text-white flex justify-between items-center">
-            <span>Get help</span>
-            {showVoiceAnimation && (
-              <div className="text-sm font-normal text-neutral-400 flex items-center gap-2">
-                <span className={voiceAnimationState === AnimationState.SPEAKING ? "text-green-400" : ""}>
-                  {voiceAnimationState === AnimationState.SPEAKING ? "Speaking" : 
-                   voiceAnimationState === AnimationState.THINKING ? "Thinking" : "Listening"}
-                </span>
-                <button 
-                  className="text-white p-1 bg-neutral-800 rounded-full hover:bg-neutral-700"
-                  onClick={stopSession}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Content area - either show messages or voice animation */}
-        {showVoiceAnimation ? (
-          <div className="w-full h-[50vh] relative flex items-center justify-center overflow-hidden">
-            {/* Animation container */}
-            <div className="h-full w-full absolute inset-0">
-              <VoiceAnimation state={voiceAnimationState} />
-              <ToolPanel
-            sendClientEvent={sendClientEvent}
-            events={events}
-            isSessionActive={isSessionActive}
-          />
-            </div>
-            {/* Debug button for testing animation states - remove in production */}
-            <button
-              onClick={cycleAnimationState}
-              className="absolute bottom-4 right-4 text-xs text-white bg-neutral-800 px-2 py-1 rounded-md opacity-50 hover:opacity-100"
-            >
-              Test
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-y-auto max-h-[70vh] flex flex-col gap-2 px-4 pb-4">
-            {dateKeys.map((dateKey) => (
-              <React.Fragment key={dateKey}>
-                {/* Date Separator */}
-                <div className="flex justify-center my-2">
-                  <span className="text-xs text-neutral-500 font-semibold bg-black px-3 py-1 rounded-full">
-                    {dateKey}
-                  </span>
-                </div>
-                {groupedMessages[dateKey].map((message, idx) => (
-                  <Message
-                    key={message.id}
-                    message={message}
-                    fromAi={message.role === "assistant"}
-                    timestamp={formatTime(message.createdAt ? new Date(message.createdAt) : new Date())}
-                  />
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
-        )}
-        <form
-          onSubmit={handleSubmit}
-          className="w-full flex flex-col items-end p-4 pt-0 bg-black"
-          ref={formRef}
+      {active && (
+        <div
+          className="w-[440px] bg-black rounded-2xl shadow-2xl transition-all duration-300 transform border border-neutral-800"
         >
-          <div className="flex items-center w-full bg-neutral-900 rounded-2xl px-4 py-3 gap-2">
-            {/* Microphone icon on the left */}
-            {isClient && (
-              <button type="button" onClick={() => isSessionActive ? stopSession() : startSession()} className="focus:outline-none">
-                <Mic size={22} className={isSessionActive || showVoiceAnimation ? "text-red-500" : "text-neutral-400"} />
-              </button>
-            )}
-            {/* Input field */}
-            <input
-              value={input}
-              onChange={handleInputChange}
-              className="flex-1 bg-transparent outline-none border-none text-white placeholder:text-neutral-500 text-base font-sans font-semibold"
-              placeholder="Write a message..."
-              maxLength={100}
-            />
-            {/* Send button */}
-            <button
-              type="submit"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
-              style={{ minWidth: 36, minHeight: 36 }}
-            >
-              <ArrowUp className="text-white" size={20} />
-            </button>
+          {/* Header */}
+          <div className="px-6 pt-6 pb-2">
+            <div className="text-2xl font-bold text-white flex justify-between items-center">
+              <span>Get help</span>
+              {showVoiceAnimation && (
+                <div className="text-sm font-normal text-neutral-400 flex items-center gap-2">
+                  <span className={voiceAnimationState === AnimationState.SPEAKING ? "text-green-400" : ""}>
+                    {voiceAnimationState === AnimationState.SPEAKING ? "Speaking" : 
+                     voiceAnimationState === AnimationState.THINKING ? "Thinking" : "Listening"}
+                  </span>
+                  <button 
+                    className="text-white p-1 bg-neutral-800 rounded-full hover:bg-neutral-700"
+                    onClick={stopSession}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </form>
-      </div>
+          {/* Content area - either show messages or voice animation */}
+          {showVoiceAnimation ? (
+            <div className="w-full h-[50vh] relative flex items-center justify-center overflow-hidden">
+              {/* Animation container */}
+              <div className="h-full w-full absolute inset-0">
+                <VoiceAnimation state={voiceAnimationState} />
+                <ToolPanel
+                  sendClientEvent={sendClientEvent}
+                  events={events}
+                  isSessionActive={isSessionActive}
+                />
+              </div>
+              {/* Debug button for testing animation states - remove in production */}
+              <button
+                onClick={cycleAnimationState}
+                className="absolute bottom-4 right-4 text-xs text-white bg-neutral-800 px-2 py-1 rounded-md opacity-50 hover:opacity-100"
+              >
+                Test
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-y-auto max-h-[70vh] flex flex-col gap-2 px-4 pb-4">
+              {dateKeys.map((dateKey) => (
+                <React.Fragment key={dateKey}>
+                  {/* Date Separator */}
+                  <div className="flex justify-center my-2">
+                    <span className="text-xs text-neutral-500 font-semibold bg-black px-3 py-1 rounded-full">
+                      {dateKey}
+                    </span>
+                  </div>
+                  {groupedMessages[dateKey].map((message, idx) => (
+                    <Message
+                      key={message.id}
+                      message={message}
+                      fromAi={message.role === "assistant"}
+                      timestamp={formatTime(message.createdAt ? new Date(message.createdAt) : new Date())}
+                    />
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={handleSubmit}
+            className="w-full flex flex-col items-end p-4 pt-0 bg-black"
+            ref={formRef}
+          >
+            <div className="flex items-center w-full bg-neutral-900 rounded-2xl px-4 py-3 gap-2">
+              {/* Microphone icon on the left */}
+              {isClient && (
+                <button type="button" onClick={() => isSessionActive ? stopSession() : startSession()} className="focus:outline-none">
+                  <Mic size={22} className={isSessionActive || showVoiceAnimation ? "text-red-500" : "text-neutral-400"} />
+                </button>
+              )}
+              {/* Input field */}
+              <input
+                value={input}
+                onChange={handleInputChange}
+                className="flex-1 bg-transparent outline-none border-none text-white placeholder:text-neutral-500 text-base font-sans font-semibold"
+                placeholder="Write a message..."
+                maxLength={100}
+              />
+              {/* Send button */}
+              <button
+                type="submit"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
+                style={{ minWidth: 36, minHeight: 36 }}
+              >
+                <ArrowUp className="text-white" size={20} />
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       <div
         className={twMerge(
           "opacity-80 cursor-pointer h-12 w-12 p-2 rounded-full bg-white hover:bg-gray-200 hover:opacity-100 transition-all duration-150 hover:shadow-[0px_0px_25px_0px_darkgray]",
