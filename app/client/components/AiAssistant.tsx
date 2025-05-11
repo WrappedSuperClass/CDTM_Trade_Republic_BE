@@ -321,7 +321,7 @@ export function AiAssistant() {
 
   return (
     <div
-      className="flex flex-col items-end fixed bottom-4 right-8 gap-2 z-50 font-sans"
+      className="flex flex-col items-start fixed bottom-4 left-4 gap-2 z-50 font-sans"
       ref={ref}
     >
       <div
@@ -428,7 +428,7 @@ export function AiAssistant() {
       </div>
       <div
         className={twMerge(
-          "opacity-80 cursor-pointer h-16 w-16 p-3 rounded-full bg-white hover:bg-gray-200 hover:opacity-100 transition-all duration-150 hover:shadow-[0px_0px_25px_0px_darkgray]",
+          "opacity-80 cursor-pointer h-12 w-12 p-2 rounded-full bg-white hover:bg-gray-200 hover:opacity-100 transition-all duration-150 hover:shadow-[0px_0px_25px_0px_darkgray]",
           active && "opacity-100",
           isSessionActive && "bg-red-100"
         )}
