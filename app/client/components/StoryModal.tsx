@@ -37,20 +37,18 @@ export function StoryModal({
   useEffect(() => {
     fetch(`https://cdtm-trade-republic-be.onrender.com/getTopMovers/`)
       .then((res) => res.json())
-      .then((data) => setTopMovers(data));
+      .then((data) => {
+        setTopMovers(data);
+      });
   }, []);
 
-  if (!content) {
-    return null;
-  }
-
-  const news = content.news[pageNumber];
-
   useEffect(() => {
-    news && setViewedStory(news.source + news.created_at);
-  }, [news]);
+    pageNumber === (content?.news.length ?? 0) - 1 &&
+      setViewedStory(content?.ticker ?? "");
+  }, [pageNumber]);
 
-  if (!topMovers && !news) {
+  const news = content?.news[pageNumber];
+  if (!topMovers || !news) {
     return null;
   }
 

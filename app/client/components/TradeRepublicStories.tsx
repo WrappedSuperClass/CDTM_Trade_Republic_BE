@@ -25,7 +25,7 @@ export function Wrapped({}: {}) {
 }
 
 export interface TopMovers {
-  asOf: string;
+  created_at: string;
   movers: {
     logo: string;
     name: string;
@@ -63,7 +63,7 @@ export function TopMovers({
                     news: [
                       {
                         content: mover.story,
-                        created_at: data.asOf,
+                        created_at: data.created_at,
                         headline: mover.title,
                         source: mover.sources[0],
                       },
@@ -102,7 +102,7 @@ export function TopMovers({
                     news: [
                       {
                         content: mover.story,
-                        created_at: data.asOf,
+                        created_at: data.created_at,
                         headline: mover.title,
                         source: mover.sources[0],
                       },

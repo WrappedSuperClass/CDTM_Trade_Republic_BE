@@ -10,9 +10,7 @@ export function Stories({ stories }: { stories: Stock[] }) {
   const [selectedStory, setSelectedStory] = useState<StockWithBack | null>(
     null
   );
-  const [viewedStories, setViewedStories] = useState<
-    { ticker: string; stories: string[] }[]
-  >([]);
+  const [viewedStories, setViewedStories] = useState<string[]>([]);
 
   console.log(viewedStories);
   return (
@@ -27,15 +25,8 @@ export function Stories({ stories }: { stories: Stock[] }) {
           onFollowToggle={() => {}}
           onTrade={() => {}}
           setViewedStory={(story) => {
-            setViewedStories((prev) =>
-              prev.find((s) => s.ticker === selectedStory?.ticker)
-                ? prev.map((s) =>
-                    s.ticker === selectedStory?.ticker
-                      ? { ...s, stories: [...s.stories, story] }
-                      : s
-                  )
-                : [...prev, { ticker: selectedStory?.ticker, stories: [story] }]
-            );
+            !viewedStories.includes(story) &&
+              setViewedStories((prev) => [...prev, story]);
           }}
         />
       )}
@@ -50,11 +41,7 @@ export function Stories({ stories }: { stories: Stock[] }) {
               });
             }}
             key={story.ticker}
-            newStory={
-              (viewedStories.find((vstory) => vstory.ticker === story.ticker)
-                ?.stories.length ?? 0) <
-              (stories.find((s) => s.ticker === story.ticker)?.news.length ?? 0)
-            }
+            newStory={!viewedStories.includes(story.ticker)}
           />
         ))}
       </div>
