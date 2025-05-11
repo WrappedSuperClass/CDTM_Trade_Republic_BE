@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LineChart } from "@mui/x-charts";
+import { LineChart, lineElementClasses } from "@mui/x-charts";
 import { Timeframe, Stock } from "@/app/page";
 
 interface StockData {
@@ -55,7 +55,7 @@ export default function StockChart({
       ]}
       colors={[
         data[data.length - 1].close > data[0].close ? "lightgreen" : "red",
-        "gray",
+        "lightgray",
       ]}
       height={400}
       sx={{

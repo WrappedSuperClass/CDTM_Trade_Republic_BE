@@ -1,6 +1,21 @@
 import Image from "next/image";
 import { Stock, StockWithBack } from "@/app/page";
 
+export function TradeRepublicStories({
+  pageNumber,
+  data,
+  setContent,
+}: {
+  pageNumber: number;
+  data: TopMovers;
+  setContent: (content: StockWithBack) => void;
+}) {
+  if (pageNumber === 0) {
+    return <TopMovers data={data} setContent={setContent} />;
+  }
+  return <Wrapped />;
+}
+
 export function Wrapped({}: {}) {
   return (
     <div>
