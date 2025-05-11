@@ -80,7 +80,7 @@ async def get_news():
                     "schema": {
                         "type": "object",
                         "properties": {
-                            "asOf": {
+                            "created_at": {
                                 "type": "string", 
                                 "format": "date-time",
                                 "description": "The current date and time in ISO-8601 format"
@@ -191,7 +191,7 @@ async def get_stock_movement(ticker: str, timeframe: str):
                     "schema": {
                         "type": "object",
                         "properties": {
-                            "asOf": {
+                            "created_at": {
                                 "type": "string",
                                 "format": "date-time",
                                 "description": "The current date and time in ISO-8601 format"
