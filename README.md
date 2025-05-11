@@ -16,6 +16,12 @@ The application includes an intelligent voice agent that can help you analyze st
    - "What caused the market dip yesterday on stock XYZ?"
    - "Explain the recent volatility in tech stocks"
 
+3. **Trade Republic Wrapped**
+   > ⚡ **IMPORTANT: Unlike the voice agent, Trade Republic Wrapped uses real statistical algorithms with Pandas! No LLM involved!**
+   - Get detailed statistical analysis of your trading patterns
+   - View performance metrics and insights
+   - Track your trading history with precise calculations
+
 The voice agent uses advanced AI and deep research to provide detailed analysis of market movements, combining real-time data with historical context and news events.
 
 A modern web application that provides financial data analysis and insights, built with FastAPI and Next.js.
