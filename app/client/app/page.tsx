@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { TopMovers } from "@/components/TradeRepublicStories";
 import { twMerge } from "tailwind-merge";
 
-
 export type Timeframe = "1d" | "1wk" | "1mo" | "1y" | "max";
 
 interface Data {
@@ -61,13 +60,16 @@ export default function Home() {
   const [data, setData] = useState<Stock[] | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/getSubscriptionStories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tickers: [...investments, ...following] }),
-    })
+    fetch(
+      "https://cdtm-trade-republic-be.onrender.com/getSubscriptionStories",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tickers: [...investments, ...following] }),
+      }
+    )
       .then((res) => res.json())
       .then((data: Data) =>
         setData(
@@ -162,7 +164,13 @@ export default function Home() {
             <TimeFilter setTimeframe={setTimeframe} timeframe={timeframe} />
 
             <div className="mt-4 h-80">
-              <StockChart timeframe={timeframe} stock={chosenStock} />
+              {chosenStock ? (
+                <StockChart timeframe={timeframe} stock={chosenStock} />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400">Select a stock to view</p>
+                </div>
+              )}
             </div>
 
             <div className="mt-16">
@@ -175,7 +183,20 @@ export default function Home() {
                     change: 0,
                     price: 0,
                     logo: "/logo.png",
-                    news: [],
+                    news: [
+                      {
+                        content: "Top Movers",
+                        created_at: "",
+                        headline: "Top Movers",
+                        source: "Top Movers",
+                      },
+                      {
+                        content: "Trade Republic Wrapped",
+                        created_at: "",
+                        headline: "Trade Republic Wrapped",
+                        source: "Trade Republic Wrapped",
+                      },
+                    ],
                   },
                   ...(data ?? []),
                 ]}

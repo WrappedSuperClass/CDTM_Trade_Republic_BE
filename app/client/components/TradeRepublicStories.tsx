@@ -1,6 +1,21 @@
 import Image from "next/image";
 import { Stock, StockWithBack } from "@/app/page";
 
+export function TradeRepublicStories({
+  pageNumber,
+  data,
+  setContent,
+}: {
+  pageNumber: number;
+  data: TopMovers;
+  setContent: (content: StockWithBack) => void;
+}) {
+  if (pageNumber === 0) {
+    return <TopMovers data={data} setContent={setContent} />;
+  }
+  return <Wrapped />;
+}
+
 export function Wrapped({}: {}) {
   return (
     <div>
@@ -10,7 +25,7 @@ export function Wrapped({}: {}) {
 }
 
 export interface TopMovers {
-  asOf: string;
+  created_at: string;
   movers: {
     logo: string;
     name: string;
@@ -48,7 +63,7 @@ export function TopMovers({
                     news: [
                       {
                         content: mover.story,
-                        created_at: data.asOf,
+                        created_at: data.created_at,
                         headline: mover.title,
                         source: mover.sources[0],
                       },
@@ -87,7 +102,7 @@ export function TopMovers({
                     news: [
                       {
                         content: mover.story,
-                        created_at: data.asOf,
+                        created_at: data.created_at,
                         headline: mover.title,
                         source: mover.sources[0],
                       },
