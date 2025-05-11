@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from query_perplexity import get_news, get_stock_movement, get_company_logo
+from query_perplexity import get_news, get_stock_movement, get_company_logo, get_stock_news
 from news_cache import NewsCache
 import yfinance as yf
 from typing import Optional
@@ -32,6 +32,9 @@ class StockMovementRequest(BaseModel):
 class StockDataRequest(BaseModel):
     ticker: str
     period: Optional[str] = "1d"  # Default to 1 day
+
+class SubscriptionStoryRequest(BaseModel):
+    tickers: list[str]
 
 
 
@@ -138,6 +141,33 @@ async def get_trading_wrapped(user_id: str):
         return {"points": wrapped_points}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@app.post("/getSubscriptionStories")
+async def get_subscription_stories(request: SubscriptionStoryRequest):
+    try:
+        # Hole existierende Stories
+        stories = news_cache.get_subscription_stories_by_tickers(request.tickers)
+        
+        # Finde Ticker, für die keine Stories vorhanden sind
+        missing_tickers = [ticker for ticker in request.tickers if ticker not in stories]
+        
+        # Hole und speichere neue Stories für fehlende Ticker
+        for ticker in missing_tickers:
+            try:
+                ticker_stories = get_stock_news(ticker)
+                if ticker_stories:  # Nur wenn Stories gefunden wurden
+                    stories[ticker] = ticker_stories
+                    # Speichere jede Story in der Datenbank
+                    for story in ticker_stories:
+                        news_cache.store_subscription_story(story)
+            except Exception as e:
+                print(f"Fehler beim Abrufen der News für {ticker}: {str(e)}")
+                continue
+        
+        return {"stories": stories}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
