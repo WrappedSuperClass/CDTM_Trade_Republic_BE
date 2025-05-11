@@ -62,7 +62,7 @@ function StoryItem({
       className={twMerge(
         "rounded-full grid place-items-center",
         newStory &&
-          "p-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
+          "p-[3.5px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
       )}
     >
       <Image
