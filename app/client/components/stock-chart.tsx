@@ -22,8 +22,8 @@ export default function StockChart({
   useEffect(() => {
     fetch(
       stock?.ticker
-        ? `https://cdtm-trade-republic-be.onrender.com/stock-data?ticker=${stock.ticker}&period=${timeframe}`
-        : `https://cdtm-trade-republic-be.onrender.com/transaction-insights`,
+        ? `http://127.0.0.1:8000/stock-data?ticker=${stock.ticker}&period=${timeframe}`
+        : `http://127.0.0.1:8000/transaction-insights`,
       {
         cache: "no-store",
       }

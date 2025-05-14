@@ -12,13 +12,13 @@ export function TradeRepublicStories({
   const [wrapped, setWrapped] = useState<{ points: string[] } | null>(null);
   const [topMovers, setTopMovers] = useState<TopMovers | null>(null);
   useEffect(() => {
-    fetch(`https://cdtm-trade-republic-be.onrender.com/getTopMovers/`)
+    fetch(`http://127.0.0.1:8000/getTopMovers/`)
       .then((res) => res.json())
       .then((data) => {
         setTopMovers(data);
       });
 
-    fetch(`https://cdtm-trade-republic-be.onrender.com/trading-wrapped/`)
+    fetch(`http://127.0.0.1:8000/trading-wrapped/`)
       .then((res) => res.json())
       .then((data) => {
         setWrapped(data);
