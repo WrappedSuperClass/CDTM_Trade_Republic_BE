@@ -96,7 +96,7 @@ export default function Home() {
   useEffect(() => {
 
     fetch(
-      "http://127.0.0.1:8000/getSubscriptionStories",
+      "https://cdtm-trade-republic-be-u7gy.onrender.com/getSubscriptionStories",
       {
         method: "POST",
         headers: {
